@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunMiniGTAP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f141b; --bg2:#131a23; --panel:#1a222d; --panel2:#222c39; --panel3:#2a3646;
+  --line:#2d3a4a; --line2:#3a4a5e;
+  --tx:#e2eaf4; --tx2:#93a5ba; --tx3:#64788f;
+  --acc:#4da3e8; --acc-dim:#2c5f8f; --acc2:#6ecf8a; --red:#e57373; --warn:#e0a458;
+  --shadow:0 2px 12px rgba(0,0,0,.35);
+  --mono:'JetBrains Mono','Consolas',monospace;
+  --radius:10px;
+}
+:root[data-theme="light"]{
+  --bg:#f2f5f9; --bg2:#e9eef4; --panel:#ffffff; --panel2:#eef2f7; --panel3:#e2e9f0;
+  --line:#d8e0ea; --line2:#c4cfdb;
+  --tx:#1b2733; --tx2:#54677c; --tx3:#8496a9;
+  --acc:#1a6fd4; --acc-dim:#bcd9f5; --acc2:#1f9d58; --red:#c94f4f; --warn:#b97f24;
+  --shadow:0 2px 10px rgba(30,50,80,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font:14px/1.5 'Inter',system-ui,'Segoe UI',sans-serif;display:flex;overflow:hidden}
+
+/* ---- sidebar ---- */
+aside{width:216px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column}
+.brand{padding:18px 16px 14px;border-bottom:1px solid var(--line)}
+.brand h1{font-size:17px;font-weight:700;color:var(--acc);letter-spacing:-.3px}
+.brand small{color:var(--tx3);font-size:11px;display:block;margin-top:3px;line-height:1.4}
+nav{padding:10px 8px;display:flex;flex-direction:column;gap:2px;flex:1;overflow:auto}
+nav button{display:flex;align-items:center;gap:10px;background:none;border:none;color:var(--tx2);padding:9px 12px;font:inherit;font-weight:500;cursor:pointer;border-radius:8px;text-align:left;transition:background .12s,color .12s}
+nav button:hover{background:var(--panel2);color:var(--tx)}
+nav button.on{background:var(--acc-dim);color:#fff}
+:root[data-theme="light"] nav button.on{color:#fff}
+nav button svg{width:16px;height:16px;flex-shrink:0}
+.sidefoot{padding:12px 16px;border-top:1px solid var(--line);font-size:11px;color:var(--tx3);line-height:1.6}
+.sidefoot .themeBtn{margin-top:8px;width:100%;display:flex;align-items:center;gap:8px;justify-content:center;background:var(--panel2);border:1px solid var(--line);color:var(--tx2);border-radius:7px;padding:6px;cursor:pointer;font:inherit;font-size:12px}
+.sidefoot .themeBtn:hover{color:var(--tx);border-color:var(--line2)}
+
+/* ---- main ---- */
+main{flex:1;overflow:auto;padding:20px 24px;min-width:0}
+.wrap{max-width:1180px;margin:0 auto}
+.pagehead{margin-bottom:16px}
+.pageTitle{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.pageSub{color:var(--tx2);font-size:13px;margin-top:3px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.panel h2{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel h2::after{content:'';flex:1;height:1px;background:var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:1100px){.grid2{grid-template-columns:1fr}}
+.muted{color:var(--tx2)} .small{font-size:12px} .tiny{font-size:11px}
+.mono{font-family:var(--mono)}
+.pos{color:var(--acc2)} .neg{color:var(--red)}
+
+/* ---- tables ---- */
+.tblwrap{overflow:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:separate;border-spacing:0;font-size:12.5px;width:100%}
+th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:5px 10px;text-align:right;white-space:nowrap}
+th:last-child,td:last-child{border-right:none}
+tr:last-child td{border-bottom:none}
+th{background:var(--panel2);color:var(--tx2);font-weight:600;position:sticky;top:0;z-index:1}
+td.hd,th.hd{background:var(--panel2);text-align:left;font-weight:500;position:sticky;left:0;z-index:1}
+th.hd{z-index:2}
+tbody tr:hover td{background:color-mix(in srgb,var(--acc) 7%,transparent)}
+tbody tr:hover td.hd{background:color-mix(in srgb,var(--acc) 10%,var(--panel2))}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---- controls ---- */
+select,input[type=number],input[type=text]{background:var(--panel2);color:var(--tx);border:1px solid var(--line2);border-radius:7px;padding:6px 10px;font:inherit;font-size:13px;outline:none;transition:border .12s,box-shadow .12s}
+select:focus,input:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
+input[type=number]{width:110px;font-family:var(--mono);text-align:right}
+input[type=text]{width:100%}
+button.act{display:inline-flex;align-items:center;gap:8px;background:var(--acc);color:#fff;border:none;border-radius:8px;padding:9px 18px;font:inherit;font-weight:600;cursor:pointer;transition:filter .12s}
+button.act:hover{filter:brightness(1.1)}
+button.act:disabled{opacity:.45;cursor:default}
+button.ghost{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);color:var(--tx);border:1px solid var(--line2);border-radius:8px;padding:7px 14px;cursor:pointer;font:inherit;font-size:13px}
+button.ghost:hover{border-color:var(--acc);color:var(--acc)}
+button.icon{background:none;border:none;color:var(--tx3);cursor:pointer;padding:5px;border-radius:6px;display:inline-flex}
+button.icon:hover{color:var(--red);background:var(--panel2)}
+button.icon svg{width:14px;height:14px}
+
+/* ---- stepper panduan ---- */
+.stepper{display:flex;align-items:stretch;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:16px;box-shadow:var(--shadow);overflow-x:auto}
+.step{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;border:1px solid transparent;cursor:pointer;background:none;font:inherit;color:var(--tx2);white-space:nowrap;transition:background .12s,color .12s,border .12s}
+.step:hover{background:var(--panel2);color:var(--tx)}
+.step.on{background:var(--acc-dim);color:#fff;border-color:var(--acc)}
+:root[data-theme="light"] .step.on{color:#fff}
+.step .n{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--panel3);color:var(--tx2);font-size:11px;font-weight:600;flex-shrink:0}
+.step.on .n{background:rgba(255,255,255,.25);color:#fff}
+.step.done .n{background:var(--acc2);color:#0f141b}
+:root[data-theme="light"] .step.done .n{color:#fff}
+.step .st{font-size:10px;font-weight:600;letter-spacing:.3px;padding:1px 6px;border-radius:99px;background:var(--panel3);color:var(--tx3)}
+.step.done .st{background:color-mix(in srgb,var(--acc2) 18%,transparent);color:var(--acc2)}
+.step.locked{opacity:.55}
+.step-arrow{align-self:center;color:var(--tx3);flex-shrink:0;font-size:12px}
+@media(max-width:900px){.step .lbl{display:none}.step .st{display:none}}
+
+/* ---- ViewHAR ---- */
+#harTree{display:flex;gap:14px;height:600px}
+#hdrList{width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+#hdrScroll{flex:1;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.hdr{padding:9px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--panel);transition:border .12s}
+.hdr:hover{border-color:var(--acc)}
+.hdr.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--panel))}
+.hdr b{font-family:var(--mono);font-size:13px}
+.hdr small{display:block;color:var(--tx2);font-size:11px;margin-top:2px}
+#hdrView{flex:1;overflow:auto;min-width:0}
+#hdrView .tblwrap{max-height:540px}
+
+/* ---- shocks ---- */
+.shockRow{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.shockRow select{min-width:120px}
+.shockRow .val{width:90px}
+.addRow{margin-top:4px}
+.elGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.elGrid .el{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--panel2);border-radius:8px;padding:8px 12px}
+.elGrid input{width:74px}
+.scenRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#scenList{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 6px 4px 12px;font-size:12px}
+.chip button{background:none;border:none;color:var(--tx2);cursor:pointer;font:inherit;font-size:12px;padding:2px 6px;border-radius:99px}
+.chip button:hover{color:var(--acc)}
+
+/* ---- solve / log ---- */
+#log{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;height:230px;overflow:auto;white-space:pre-wrap;color:var(--tx2);line-height:1.7}
+:root[data-theme="light"] #log{background:#fbfcfe}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--acc-dim);border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- KPI & charts ---- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .lab{font-size:11px;color:var(--tx2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.kpi .val{font-family:var(--mono);font-size:21px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+svg .cl{fill:var(--tx2);font:11px 'Inter',sans-serif}
+svg .cv{fill:var(--tx);font:11px var(--mono)}
+svg .bar.pos{fill:var(--acc2)} svg .bar.neg{fill:var(--red)}
+svg .axis{stroke:var(--line2);stroke-width:1}
+.chartwrap{overflow-x:auto}
+
+/* ---- toast ---- */
+#toasts{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:99}
+.toast{background:var(--panel);border:1px solid var(--line2);border-left:3px solid var(--acc);border-radius:8px;padding:10px 16px;font-size:13px;box-shadow:var(--shadow);animation:tin .25s ease}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---- responsive ---- */
+@media(max-width:840px){
+  body{flex-direction:column}
+  aside{width:100%;flex-direction:row;align-items:center;border-right:none;border-bottom:1px solid var(--line)}
+  .brand{padding:10px 14px}
+  .brand small{display:none}
+  nav{flex-direction:row;padding:6px;overflow-x:auto}
+  nav button{white-space:nowrap;padding:7px 10px}
+  .sidefoot{display:none}
+  main{padding:14px}
+  #harTree{flex-direction:column;height:auto}
+  #hdrList{width:100%}
+  #hdrScroll{max-height:220px}
+}
+pre.map{font-family:var(--mono);font-size:12px;white-space:pre-wrap;color:var(--tx2);line-height:1.6}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand"><h1>RunMiniGTAP</h1><small>GTAP 12a &middot; 2023 &middot; konvensi MANAGE-WB</small></div>
+  <nav id="nav"></nav>
+  <div class="sidefoot">
+    <div id="footInfo"></div>
+    <button class="themeBtn" id="themeBtn"></button>
+  </div>
+</aside>
+<main><div class="wrap"><div id="stepper"></div><div id="stepHint" style="margin:-6px 0 14px"></div><div id="main"></div></div></main>
+<div id="toasts"></div>
+
+<script>
+'use strict';
+const DS = /*__DATA__*/null;
+const S = DS.meta.sectors, R = DS.meta.regions, F = DS.meta.factors;
+const YEARS = DS.meta.years;              // ['2004',...,'2023']
+let curYear = (()=>{try{return localStorage.getItem('rungtap_year')||DS.meta.defaultYear;}catch(e){return DS.meta.defaultYear;}})();
+let D = DS.years[curYear];                // data untuk tahun berjalan
+let M = null;                             // objek kalibrasi (di-build oleh buildCal)
+const SI = Object.fromEntries(S.map((s,i)=>[s,i]));
+const RI = Object.fromEntries(R.map((r,i)=>[r,i]));
+const FI = Object.fromEntries(F.map((f,i)=>[f,i]));
+const nf1 = new Intl.NumberFormat('id-ID',{maximumFractionDigits:1});
+const nf3 = new Intl.NumberFormat('id-ID',{maximumFractionDigits:3});
+const fmt  = x => (x==null||!isFinite(x))?'-':nf1.format(x);
+const fmt3 = x => (x==null||!isFinite(x))?'-':nf3.format(x);
+const pct  = x => (x>=0?'+':'')+(x*100).toFixed(2)+'%';
+const pctc = x => `<span class="${x>=0?'pos':'neg'}">${pct(x)}</span>`;
+const MARG = ['otp','wtp','atp'];
+const ICON = {
+  data:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>',
+  agg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>',
+  shock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>',
+  run:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="6 3 20 12 6 21 6 3"/></svg>',
+  res:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>',
+  gams:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3"/></svg>',
+  cmp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M8 17V9M13 17V5M18 17v-8"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+  dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
+  save:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v10M7 3v5h8"/></svg>',
+};
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},2600);
+}
+
+// ============ kalibrasi (port minicge.py — JANGAN ubah) ============
+const nS=S.length,nR=R.length,nF=F.length;
+
+function buildCal(D){
+  const EVFB=D.EVFB, VDFB=D.VDFB, VMFB=D.VMFB;
+  const VA=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>F.reduce((a,_,f)=>a+EVFB[f][s][r],0)));
+  const INTsum=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>S.reduce((a,_,u)=>a+VDFB[s][u][r]+VMFB[s][u][r],0)));
+  const INTU=Array.from({length:nS},(_,u)=>Array.from({length:nR},(_,r)=>S.reduce((a,_,i)=>a+VDFB[i][u][r]+VMFB[i][u][r],0)));
+  const Y0=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>VA[s][r]+INTU[s][r]));
+  const domIn=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>S.reduce((a,_,u)=>a+VDFB[s][u][r],0)));
+  const impInt=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>S.reduce((a,_,u)=>a+VMFB[s][u][r],0)));
+  // VMSB stored as (S, src, dst): total imports INTO dst = sum over src
+  const Mtot0=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,dst)=>R.reduce((a,_,src)=>a+D.VMSB[s][src][dst],0)));
+  const finD=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>D.VDPP[s][r]+D.VDGB[s][r]+D.VDIB[s][r]));
+  const impFin=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>Math.max(Mtot0[s][r]-impInt[s][r],0)));
+  const finTot=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>finD[s][r]+impFin[s][r]));
+  const DD0=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>domIn[s][r]+finD[s][r]));
+  const qDom0=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>Math.min(DD0[s][r],Y0[s][r])));
+  const CA0=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>INTsum[s][r]+finTot[s][r]));
+  const shDom=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>CA0[s][r]>1e-9?qDom0[s][r]/Math.max(CA0[s][r],1e-9):0.5));
+  const shImp=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>1-shDom[s][r]));
+  const expTarget=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>Math.max(Y0[s][r]-qDom0[s][r],0)));
+  const Xrow0=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,src)=>R.reduce((a,_,dst)=>a+(dst===src?0:D.VXSB[s][src][dst]),0)));
+  const thetaMn=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,dst)=>Array.from({length:nR},(_,src)=>{
+    const tot=Mtot0[s][dst];return tot>1e-12?(D.VMSB[s][src][dst]||0)/tot:0;})));
+  const aic=Array.from({length:nS},(_,i)=>Array.from({length:nS},(_,u)=>Array.from({length:nR},(_,r)=>Y0[u][r]>1e-9?(VDFB[i][u][r]+VMFB[i][u][r])/Y0[u][r]:0)));
+  const shVA=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>Y0[s][r]>1e-9?VA[s][r]/Y0[s][r]:0));
+  const EndowR=Array.from({length:nF},(_,f)=>Array.from({length:nR},(_,r)=>S.reduce((a,_,s)=>a+EVFB[f][s][r],0)));
+  const thetaF=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>{const t=VA[s][r];return t>1e-9?F.map((_,f)=>EVFB[f][s][r]/t):F.map(()=>0);}));
+  const finTotR=Array.from({length:nR},(_,r)=>S.reduce((a,_,s)=>a+finTot[s][r],0));
+  const shFin=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>finTotR[r]>1e-9?finTot[s][r]/finTotR[r]:0));
+  const transf=Array.from({length:nR},(_,r)=>finTotR[r]-F.reduce((a,_,f)=>a+EndowR[f][r],0));
+  // emisi CO2 (dari co2.har 2023, dipakai utk semua tahun basis)
+  const EMIS_PROD=D.EMIS_PROD||null;
+  const EMIS_CONS=D.EMIS_CONS||null;
+  const EMIS0=R.map((_,r)=>S.reduce((a,_,s)=>a+(EMIS_PROD?EMIS_PROD[s][r]:0),0)+(EMIS_CONS?EMIS_CONS[r]:0));
+  const eCoef=EMIS_PROD&&Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>Y0[s][r]>1e-9?EMIS_PROD[s][r]/Y0[s][r]:0));
+  return {EVFB,VDFB,VMFB,VA,INTsum,INTU,Y0,domIn,impInt,Mtot0,finD,impFin,finTot,DD0,qDom0,
+          CA0,shDom,shImp,expTarget,Xrow0,thetaMn,aic,shVA,EndowR,thetaF,finTotR,shFin,transf,
+          EMIS_PROD,EMIS_CONS,EMIS0,eCoef};
+}
+// alias ke kalibrasi tahun berjalan (dipakai seluruh app)
+let VA,INTsum,INTU,Y0,domIn,impInt,Mtot0,finD,impFin,finTot,DD0,qDom0,CA0,shDom,shImp,
+    expTarget,Xrow0,thetaMn,aic,shVA,EndowR,thetaF,finTotR,shFin,transf,
+    EVFB,VDFB,VMFB,EMIS_PROD,EMIS_CONS,EMIS0,eCoef;
+function applyYear(yr){
+  curYear=yr; D=DS.years[yr]; M=buildCal(D);
+  ({EVFB,VDFB,VMFB,VA,INTsum,INTU,Y0,domIn,impInt,Mtot0,finD,impFin,finTot,DD0,qDom0,
+    CA0,shDom,shImp,expTarget,Xrow0,thetaMn,aic,shVA,EndowR,thetaF,finTotR,shFin,transf,
+    EMIS_PROD,EMIS_CONS,EMIS0,eCoef}=M);
+  try{localStorage.setItem('rungtap_year',yr);}catch(e){}
+}
+applyYear(curYear);
+
+function linSolve(A,b){
+  const n=A.length,M=A.map((row,i)=>[...row,b[i]]);
+  for(let c=0;c<n;c++){
+    let p=c;for(let i=c+1;i<n;i++)if(Math.abs(M[i][c])>Math.abs(M[p][c]))p=i;
+    if(Math.abs(M[p][c])<1e-14)continue;
+    const t=M[c];M[c]=M[p];M[p]=t;
+    for(let i=0;i<n;i++){if(i===c)continue;const f=M[i][c]/M[c][c];for(let j=c;j<=n;j++)M[i][j]-=f*M[c][j];}
+  }
+  return Array.from({length:n},(_,i)=>{const d=M[i][i];return Math.abs(d)<1e-14?b[i]:M[i][n]/d;});
+}
+
+const SIG0={arm:2.0,exp:4.0,src:4.0,va:0.8};
+
+// shocks: {endow:{f:{r:frac}}, prod:{s:{r:frac}}, tariff:{s:{dst:{src:frac}}}, els:{}}
+function solveModel(shocks){
+  const EL={arm:shocks.els?.arm??SIG0.arm, exp:shocks.els?.exp??SIG0.exp,
+            src:shocks.els?.src??SIG0.src, va:shocks.els?.va??SIG0.va};
+  const eF0=(f,r)=>shocks.endow?.[f]?.[r]||0;
+  const pP=(s,r)=>shocks.prod?.[s]?.[r]||0;
+  const tTar=(s,d,src)=>shocks.tariff?.[s]?.[d]?.[src]||0;
+  const {thetaMn,Mtot0,shDom,shImp,aic,shVA,EndowR,thetaF,finTotR,shFin,transf,expTarget,Xrow0}=M;
+  const EndowEff=EndowR.map((v,f)=>v.map((x,r)=>x*(1+eF0(F[f],R[r]))));
+  const aprod=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>1+pP(S[s],R[r])));
+  const numF=FI['Land'],numR=RI['Indonesia'];
+  const mQty0=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,dst)=>thetaMn[s][dst].map(t=>Mtot0[s][dst]*t)));
+  let wf=Array.from({length:nF},()=>Array(nR).fill(1));
+  let ps=Array.from({length:nS},()=>Array(nR).fill(1));
+  const Ynew=Array.from({length:nS},()=>Array(nR).fill(0));
+  const log=[];
+  const t0=performance.now();
+  let iters=0;
+  let eF=0;
+  for(let it=0;it<800;it++){
+    iters=it;
+    for(let inner=0;inner<300;inner++){
+      const cva=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>{
+        let z=0;for(let f=0;f<nF;f++)z+=thetaF[s][r][f]*Math.pow(Math.max(wf[f][r],1e-12),1-EL.va);
+        return Math.pow(Math.max(z,1e-12),1/(1-EL.va));}));
+      const pimp=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,dst)=>{
+        let z=0;for(let src=0;src<nR;src++){
+          const pm=ps[s][dst]*(1+tTar(S[s],R[dst],R[src]));
+          z+=thetaMn[s][dst][src]*Math.pow(Math.max(pm,1e-12),1-EL.src);}
+        return Math.pow(Math.max(z,1e-12),1/(1-EL.src));}));
+      const parm=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>shDom[s][r]*ps[s][r]+shImp[s][r]*pimp[s][r]));
+      const cost=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>{
+        let c=shVA[s][r]*cva[s][r];
+        for(let i=0;i<nS;i++)c+=aic[i][s][r]*parm[i][r];
+        return c;}));
+      const ps_new=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>Y0[s][r]>1e-9?cost[s][r]/aprod[s][r]:1));
+      let e_ps=0;for(let s=0;s<nS;s++)for(let r=0;r<nR;r++)e_ps=Math.max(e_ps,Math.abs(ps_new[s][r]-ps[s][r])/Math.max(ps[s][r],1e-9));
+      ps=ps.map((row,s)=>row.map((p,r)=>p+0.4*(ps_new[s][r]-p)));
+
+      const tarifRev=Array(nR).fill(0);
+      for(let s=0;s<nS;s++)for(let d=0;d<nR;d++)for(let src=0;src<nR;src++){
+        const t=tTar(S[s],R[d],R[src]);
+        if(t>1e-12)tarifRev[d]+=mQty0[s][d][src]*ps[s][d]*(1+t)*(t/Math.max(1+t,1e-9));}
+      const inc=Array.from({length:nR},(_,r)=>F.reduce((a,_,f)=>a+EndowR[f][r]*wf[f][r],0)+tarifRev[r]+transf[r]);
+      const qFin=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>shFin[s][r]*inc[r]/Math.max(parm[s][r],1e-9)));
+      const pwrD=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>Math.pow(Math.max(ps[s][r],1e-12)/Math.max(parm[s][r],1e-12),-EL.arm)));
+      const pwX=Array.from({length:nS},(_,s)=>{let n=0,d2=0;for(let src=0;src<nR;src++){n+=Xrow0[s][src]*ps[s][src];d2+=Xrow0[s][src];}return n/Math.max(d2,1e-12);});
+      const pwrX=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,src)=>Math.pow(Math.max(ps[s][src],1e-12)/Math.max(pwX[s],1e-12),-EL.exp)));
+      const expD=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,src)=>expTarget[s][src]*pwrX[s][src]));
+      for(let r=0;r<nR;r++){
+        const sd=Array.from({length:nS},(_,s)=>shDom[s][r]*pwrD[s][r]);
+        const M=Array.from({length:nS},(_,i)=>Array.from({length:nS},(_,u)=>(i===u?1:0)-sd[i]*aic[i][u][r]));
+        const rhs=Array.from({length:nS},(_,s)=>sd[s]*qFin[s][r]+expD[s][r]);
+        const y=linSolve(M,rhs);
+        for(let s=0;s<nS;s++)Ynew[s][r]=y[s];
+      }
+      if(e_ps<1e-10)break;
+    }
+    const cva2=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>{
+      let z=0;for(let f=0;f<nF;f++)z+=thetaF[s][r][f]*Math.pow(Math.max(wf[f][r],1e-12),1-EL.va);
+      return Math.pow(Math.max(z,1e-12),1/(1-EL.va));}));
+    const FD=Array.from({length:nF},()=>Array(nR).fill(0));
+    for(let s=0;s<nS;s++)for(let r=0;r<nR;r++){
+      const VAq=shVA[s][r]*Ynew[s][r]/aprod[s][r];
+      for(let f=0;f<nF;f++)FD[f][r]+=thetaF[s][r][f]*VAq*Math.pow(Math.max(cva2[s][r],1e-12)/Math.max(wf[f][r],1e-12),EL.va);}
+    eF=0;
+    for(let f=0;f<nF;f++)for(let r=0;r<nR;r++)if(EndowEff[f][r]>1e-6)
+      eF=Math.max(eF,Math.abs((FD[f][r]-EndowEff[f][r])/EndowEff[f][r]));
+    // langkah adaptif: kecilkan hanya bila eF benar-benar mandek lama
+    if(!wf._step)wf._step=0.3;
+    if(!wf._best||eF<wf._best*0.995){wf._best=eF;wf._stall=0;}
+    else if(++wf._stall>=30&&eF>1e-6){wf._step=Math.max(0.02,wf._step*0.5);wf._stall=0;}
+    wf=wf.map((row,f)=>row.map((w,r)=>{
+      const exc=(FD[f][r]-EndowEff[f][r])/Math.max(EndowEff[f][r],1e-9);
+      return w*Math.exp(wf._step*Math.max(-0.5,Math.min(0.5,exc)));}));
+    const nn=wf[numF][numR];wf=wf.map(row=>row.map(w=>w/nn));
+    if(it%100===0)log.push(`iter ${String(it).padStart(3)}  eF=${eF.toExponential(2)}`);
+    if(eF<1e-6){log.push(`konvergen pada iter ${it}: eF=${eF.toExponential(2)}`);break;}
+  }
+  if(eF>=1e-6)log.push(`STOP pada batas iterasi dengan eF=${eF.toExponential(2)} — hasil aproksimatif (biasanya cukup akurat, lihat angka < 1e-4)`);
+  log.push(`iterasi: ${iters}  |  waktu: ${((performance.now()-t0)/1000).toFixed(1)}s`);
+  // income, CPI & tarif rev pada solusi akhir
+  const parmF=Array.from({length:nS},(_,s)=>Array.from({length:nR},(_,r)=>{
+    let z=0;for(let src=0;src<nR;src++)z+=thetaMn[s][r][src]*Math.pow(Math.max(ps[s][r]*(1+tTar(S[s],R[r],R[src])),1e-12),1-EL.src);
+    const pimp=Math.pow(Math.max(z,1e-12),1/(1-EL.src));
+    return shDom[s][r]*ps[s][r]+shImp[s][r]*pimp;}));
+  const tarF=Array(nR).fill(0);
+  for(let s=0;s<nS;s++)for(let d=0;d<nR;d++)for(let src=0;src<nR;src++){
+    const t=tTar(S[s],R[d],R[src]);
+    if(t>1e-12)tarF[d]+=mQty0[s][d][src]*ps[s][d]*(1+t)*(t/Math.max(1+t,1e-9));}
+  const incF=Array.from({length:nR},(_,r)=>F.reduce((a,_,f)=>a+EndowR[f][r]*wf[f][r],0)+tarF[r]+transf[r]);
+  const cpiF=Array.from({length:nR},(_,r)=>S.reduce((a,_,s)=>a+shFin[s][r]*parmF[s][r],0));
+  // EV (equivalent variation): perubahan utilitas riil dinilai pada harga basis.
+  // EV_r = U1(P0) - U0 = (inc1/cpi1)·cpi0-weighted... disederhanakan pada
+  // struktur fixed-share Cobb-Douglas-lite model: EV = inc1/cpi1 - inc0,
+  // dinilai pada harga basis (cpi0 = 1). Unit: juta USD.
+  const EV=Array.from({length:nR},(_,r)=>incF[r]/Math.max(cpiF[r],1e-9)-finTotR[r]);
+  return {wf,ps,Y:Ynew,log,inc:incF,cpi:cpiF,tarifRev:tarF,el:EL,EV};
+}
+
+// ============ state shocks (list-based) ============
+let endowList=[];   // {f, r, v}
+let prodList=[];    // {s, r, v}
+let tariffList=[];  // {s, d, src, v}
+let els={};
+function buildShocks(){
+  const sh={endow:{},prod:{},tariff:{},els:{...els}};
+  // v sudah fraksi (bind() membagi 100 saat input berubah)
+  for(const e of endowList){if(e.v)(sh.endow[e.f]=sh.endow[e.f]||{})[e.r]=e.v;}
+  for(const p of prodList){if(p.v)(sh.prod[p.s]=sh.prod[p.s]||{})[p.r]=p.v;}
+  for(const t of tariffList){
+    if(!t.v)continue;   // baris kosong (v=0) tidak menimpa shock lain
+    const ss=t.s==='ALL'?S:[t.s], srs=t.src==='ALL'?R:[t.src];
+    for(const s of ss)for(const src of srs){
+      (sh.tariff[s]=sh.tariff[s]||{});(sh.tariff[s][t.d]=sh.tariff[s][t.d]||{})[src]=t.v;}
+  }
+  return sh;
+}
+function shockCount(){return endowList.length+prodList.length+tariffList.length;}
+
+// ============ UI shell ============
+const main=document.getElementById('main');
+const VIEWS=[
+  {id:'har',  lab:'Data (ViewHAR)', ic:ICON.data},
+  {id:'agg',  lab:'Agregasi', ic:ICON.agg},
+  {id:'shock',lab:'Closure & Shocks', ic:ICON.shock},
+  {id:'run',  lab:'Solve', ic:ICON.run},
+  {id:'res',  lab:'Hasil', ic:ICON.res},
+  {id:'cmp',  lab:'Banding', ic:ICON.cmp},
+  {id:'gams', lab:'Export GAMS', ic:ICON.gams},
+];
+const nav=document.getElementById('nav');
+VIEWS.forEach(v=>{
+  const b=document.createElement('button');b.dataset.v=v.id;b.innerHTML=`${v.ic}<span>${v.lab}</span>`;
+  b.onclick=()=>setView(v.id);nav.appendChild(b);
+});
+const footInfoEl=document.getElementById('footInfo');
+function renderFootInfo(){footInfoEl.textContent=
+  `${nS} sektor × ${nR} region × ${nF} faktor · basis ${curYear} · numeraire: Land IDN`;}
+renderFootInfo();
+const themeBtn=document.getElementById('themeBtn');
+function setTheme(t){
+  document.documentElement.dataset.theme=t;
+  try{localStorage.setItem('rungtap_theme',t);}catch(e){}
+  themeBtn.innerHTML=`${t==='dark'?'☀':'☾'} Mode ${t==='dark'?'Terang':'Gelap'}`;
+}
+try{setTheme(localStorage.getItem('rungtap_theme')||'dark');}catch(e){setTheme('dark');}
+themeBtn.onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+
+// onboarding: sapaan sekali untuk pengguna baru
+let fresh=false;
+try{if(!localStorage.getItem('rungtap_seen')){fresh=true;localStorage.setItem('rungtap_seen','1');}}catch(e){}
+
+let view='har';
+// ---- stepper panduan: langkah simulasi + status ----
+const STEPS=[
+  {id:'har',  lab:'Data',          tip:'Jelajahi data basis GTAP 12a'},
+  {id:'agg',  lab:'Agregasi',      tip:'Cek pemetaan 65→11 sektor, 163→16 region'},
+  {id:'shock',lab:'Shocks',        tip:'Definisikan kejadian kebijakan (tarif, endowment, produktivitas)'},
+  {id:'run',  lab:'Solve',         tip:'Jalankan model CGE'},
+  {id:'res',  lab:'Hasil',         tip:'Lihat dampak: output, upah, EV, emisi'},
+  {id:'cmp',  lab:'Banding',       tip:'Bandingkan beberapa skenario'},
+  {id:'gams', lab:'Export GAMS',   tip:'Unduh skeleton GAMS'},
+];
+function stepState(){
+  const nShocks=(typeof endowList!=='undefined'?endowList.length:0)+(typeof prodList!=='undefined'?prodList.length:0)+(typeof tariffList!=='undefined'?tariffList.length:0);
+  return {
+    shock:nShocks>0,
+    run:!!window.lastRes,
+    res:!!window.lastRes,
+    cmp:(()=>{try{return JSON.parse(sessionStorage.getItem('rungtap_runs')||'[]').length>0;}catch(e){return false;}})(),
+  };
+}
+function renderStepper(){
+  const st=stepState();
+  const navEl=document.getElementById('stepper');if(!navEl)return;
+  navEl.innerHTML=STEPS.map((s,i)=>{
+    const done=st[s.id]===true;
+    const isOn=view===s.id;
+    const arrow=i<STEPS.length-1?'<span class="step-arrow">›</span>':'';
+    const badge=s.id==='shock'?(done?'siap':'kosong'):(done?'✓':'');
+    return `${arrow}<button class="step ${isOn?'on':''} ${done?'done':''}" data-v="${s.id}" title="${s.tip}">
+      <span class="n">${done&&!isOn?'✓':i+1}</span><span class="lbl">${s.lab}</span>${badge?`<span class="st">${badge}</span>`:''}</button>`;
+  }).join('');
+  navEl.querySelectorAll('.step').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+  // hint langkah berikutnya
+  const hint=document.getElementById('stepHint');
+  if(hint){
+    const order=['har','agg','shock','run','res','cmp','gams'];
+    let next=null;
+    if(!st.shock)next={v:'shock',t:'Definisikan minimal satu shock (mis. tarif impor 10%)'};
+    else if(!st.run)next={v:'run',t:'Jalankan model untuk melihat hasil'};
+    else if(!st.cmp&&view!=='cmp')next={v:'cmp',t:'Simpan run ini di tab Banding untuk membandingkan skenario'};
+    hint.innerHTML=next?`<span class="muted small">💡 Langkah berikutnya: ${next.t} — <a href="#" id="hintGo" style="color:var(--acc)">buka ${STEPS.find(x=>x.id===next.v).lab} →</a></span>`
+      :(st.run?`<span class="muted small">✓ Semua langkah inti selesai. Bereksperimenlah: ubah shock, jalankan ulang, lalu bandingkan.</span>`:'');
+    const go=document.getElementById('hintGo');
+    if(go)go.onclick=e=>{e.preventDefault();setView(next.v);};
+  }
+}
+function setView(v){
+  view=v;
+  nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  ({har:vHar,agg:vAgg,shock:vShock,run:vRun,res:vRes,cmp:vCmp,gams:vGams})[v]();
+  renderStepper();
+  main.parentElement.scrollTop=0;
+}
+
+// ---- SVG horizontal bar chart ----
+function hbar(items,{valFmt=pct,rowH=24}={}){
+  const W=640,L=130,R=100;
+  const maxA=Math.max(...items.map(i=>Math.abs(i.value)),1e-9);
+  const H=items.length*rowH, half=(W-L-R)/2, cx=L+half;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+  s+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" class="axis"/>`;
+  items.forEach((it,i)=>{
+    const y=i*rowH+rowH/2;
+    const w=Math.min(Math.abs(it.value)/maxA*half,half);
+    const cls=it.value>=0?'pos':'neg';
+    const x=it.value>=0?cx:cx-w;
+    s+=`<text x="${L-10}" y="${y}" text-anchor="end" dominant-baseline="middle" class="cl">${it.label}</text>`;
+    if(Math.abs(it.value)>1e-12)s+=`<rect x="${x}" y="${y-6.5}" width="${Math.max(w,2)}" height="13" rx="3" class="bar ${cls}"/>`;
+    s+=`<text x="${it.value>=0?cx+w+8:cx-w-8}" y="${y}" text-anchor="${it.value>=0?'start':'end'}" dominant-baseline="middle" class="cv">${valFmt(it.value)}</text>`;
+  });
+  return s+'</svg>';
+}
+
+// ============ ViewHAR ============
+const HDRS = [
+ {name:'EVFB', desc:'pembayaran faktor (juta USD)', d0:'f', d1:'s', d2:'r'},
+ {name:'VDFB', desc:'intermedier domestik (S_in, S_user, R)', d0:'s', d1:'s', d2:'r', l1:'user'},
+ {name:'VMFB', desc:'intermedier impor (S_in, S_user, R)', d0:'s', d1:'s', d2:'r', l1:'user'},
+ {name:'VXSB', desc:'ekspor sumber → tujuan (S, src, dst)', d0:'s', d1:'r', d2:'r', l1:'sumber', l2:'tujuan'},
+ {name:'VMSB', desc:'impor tujuan ← sumber (S, src, dst)', d0:'s', d1:'r', d2:'r', l1:'sumber', l2:'tujuan'},
+ {name:'VDPP', desc:'konsumsi rumah tangga (S, R)', d0:'s', d1:'r'},
+ {name:'VDGB', desc:'konsumsi pemerintah (S, R)', d0:'s', d1:'r'},
+ {name:'VDIB', desc:'permintaan investasi (S, R)', d0:'s', d1:'r'},
+ {name:'VST',  desc:'margin perdagangan (M, R)', d0:'m', d1:'r'},
+ {name:'POP',  desc:'populasi (juta jiwa) (R)', d0:'r'},
+];
+function hdrData(nm){return D[nm];}
+function dimSet(k){return k==='s'?S:k==='r'?R:k==='f'?F:MARG;}
+
+function vHar(){
+  main.innerHTML=`
+  <div class="pageTitle">ViewHAR</div>
+  <div class="pageSub">Penjelajah header data GTAP 12a — satuan juta USD kecuali POP.</div>
+  <div style="height:14px"></div>
+  <div class="panel" style="padding:12px 18px"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <span class="small" style="font-weight:600">Basedata tahun:</span>
+    <select id="yearSel" style="min-width:200px">${YEARS.map(y=>`<option value="${y}" ${y===curYear?'selected':''}>${y}${y===DS.meta.defaultYear?' (default)':''}</option>`).join('')}</select>
+    <span class="tiny muted">Seluruh tab (Shocks, Solve, Hasil) memakai basis tahun ini. Pilihan tersimpan otomatis.</span>
+  </div></div>
+  ${fresh?`<div class="panel" style="border-color:var(--acc);margin-top:12px"><h2>Selamat datang</h2>
+    <div class="small" style="line-height:1.8">Simulasi CGE mengikuti <b>4 langkah</b> (lihat bilah langkah di atas):
+    <b>1</b> jelajahi data di sini · <b>2</b> definisikan shock kebijakan di tab <b>Shocks</b> ·
+    <b>3</b> klik <b>Jalankan Model</b> · <b>4</b> lihat dampak di <b>Hasil</b>.
+    Alur cepat: buka tab Shocks → tambah tarif impor (mis. sektor ALL, tujuan Indonesia, 10%) → Jalankan Model.</div></div>`:''}
+  <div style="height:16px"></div>
+  <div class="panel"><div id="harTree">
+    <div id="hdrList">
+      <input type="text" id="hdrSearch" placeholder="Cari header… (mis. VMS)">
+      <div id="hdrScroll"></div>
+    </div>
+    <div id="hdrView"><div class="muted small" style="padding:20px">Pilih header di kiri.</div></div>
+  </div></div>`;
+  document.getElementById('yearSel').onchange=e=>{
+    const y=e.target.value;
+    if(y===curYear)return;
+    applyYear(y);
+    window.lastRes=null;window.lastSens=null;   // hasil lama tak valid untuk basis baru
+    toast(`Basis data beralih ke tahun ${y}`);renderFootInfo();renderStepper();vHar();
+  };
+  const scroll=document.getElementById('hdrScroll');
+  const render=(q='')=>{
+    scroll.innerHTML='';
+    HDRS.filter(h=>(h.name+h.desc).toLowerCase().includes(q.toLowerCase())).forEach(h=>{
+      const div=document.createElement('div');div.className='hdr';
+      div.innerHTML=`<b>${h.name}</b><small>${h.desc}</small>`;
+      div.onclick=()=>{scroll.querySelectorAll('.hdr').forEach(x=>x.classList.remove('on'));div.classList.add('on');showHdr(h);};
+      scroll.appendChild(div);
+    });
+  };
+  document.getElementById('hdrSearch').oninput=e=>render(e.target.value);
+  render();
+  scroll.querySelector('.hdr').click();
+}
+function showHdr(h){
+  const view=document.getElementById('hdrView');
+  const data=hdrData(h.name);
+  const A=dimSet(h.d0), B=dimSet(h.d1), C=h.d2?dimSet(h.d2):null;
+  const labB=h.l1||h.d1, labC=h.d2?(h.l2||h.d2):null;
+  if(!C){
+    view.innerHTML=`<div class="tiny muted" style="margin-bottom:8px"><b class="mono">${h.name}</b> — ${h.desc}</div>
+      <div class="tblwrap"><table><thead><tr><th class="hd">${h.name} \\ ${labB}</th>${B.map(b=>`<th>${b}</th>`).join('')}</tr></thead>
+      <tbody>${A.map((a,i)=>`<tr><td class="hd">${a}</td>${B.map((b,j)=>`<td class="num ${data[i][j]<0?'neg':''}">${fmt(data[i][j])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    return;
+  }
+  let cur=0;
+  view.innerHTML=`<div class="tiny muted" style="margin-bottom:8px"><b class="mono">${h.name}</b> — ${h.desc}</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <button class="ghost" id="prevC">‹</button>
+      <span class="small">${labC}: <b id="cLabel" class="mono"></b></span>
+      <button class="ghost" id="nextC">›</button>
+      <select id="selC">${C.map((c,i)=>`<option value="${i}">${c}</option>`).join('')}</select>
+    </div><div class="tblwrap" style="max-height:520px"><div id="tbl"></div></div>`;
+  const draw=()=>{
+    const c=cur;
+    document.getElementById('cLabel').textContent=C[c];
+    document.getElementById('selC').value=c;
+    document.getElementById('tbl').innerHTML=`<table><thead><tr><th class="hd">${h.name} \\ ${labB}</th>${B.map(b=>`<th>${b}</th>`).join('')}</tr></thead>
+      <tbody>${A.map((a,i)=>`<tr><td class="hd">${a}</td>${B.map((b,j)=>{const v=data[i][j][c];
+        return `<td class="num ${v<0?'neg':''}">${fmt(v)}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;
+  };
+  document.getElementById('prevC').onclick=()=>{cur=Math.max(0,cur-1);draw();};
+  document.getElementById('nextC').onclick=()=>{cur=Math.min(C.length-1,cur+1);draw();};
+  document.getElementById('selC').onchange=e=>{cur=+e.target.value;draw();};
+  draw();
+}
+
+// ============ Agregasi ============
+function vAgg(){
+  const SEC_MAP={
+    AgriFood:'pdr wht gro v_f osd c_b pfb ocr ctl oap rmk wol frs fsh cmt omt vol mil sgr ofd pcr',
+    Energy:'coa oil gas g_n g_c omn',FerMet:'i_s nfm nmm',ChemRub:'chm b_t ppp bph rpp',
+    Textile:'tex wap lea',LightMfg:'fmp mvh otn ele omf lum',HeavyMfg:'fmf p_c eeq ome',
+    UtilConst:'ely gdt wtr cns dwe',TradeTrans:'trd otp wtp atp cmn whs afs',
+    FinBusSvc:'ofi isr ins obs rsa',PubServ:'osg edu hht oxt ros'};
+  const REG_MAP={
+    Indonesia:'idn',SEAsia:'tha vnm mys sgp phl lao khm brn xmm xse',China:'chn hkg twn',
+    EastAsia:'jpn kor mng xea',SouthAsia:'ind bgd lka pak npl afg xsa',
+    NAmerica:'usa can mex xna',LatinAmer:'bra arg chl col per ven ecu bol ury pry xsm cri gtm hnd nic pan slv xca dom hti jam pri tto xcb',
+    EU27:'aut bel bgr hrv cyp cze dnk est fin fra deu hun irl ita lva ltu lux mlt nld pol prt svk svn esp swe',
+    UK:'gbr',RestEurope:'che nor isl xer rou alb srb blr ukr xee',Russia:'rus',
+    CAsia:'kaz kgz tjk uzb arm aze geo',
+    MENA:'tur isr sau are irn irq jor kwt omn qat bhr lbn pse xws egy mar dza tun xbg xnf xme mau sym',
+    SSA:'zaf nga gha ken eth sen tza uga cmr cic xac zmb zwe moz mdg mwi ago bdm nbl bwa nam ben bfa civ gin mli mrt ner tgo xwf caf tcd cog cod gnq gab stp bdi com mus rwa sdn xec swz mad',
+    Oceania:'aus nzl xoc'};
+  const secRows=Object.entries(SEC_MAP).map(([k,v])=>{
+    const codes=v.split(' ');
+    const val=codes.reduce((a,c)=>a+(typeof SI[c]==='number'?finTot[SI[c]].reduce((b,x)=>b+x,0):0),0);
+    return {k,n:codes.length,val};
+  });
+  const totVal=secRows.reduce((a,x)=>a+x.val,0)||1;
+  const regRows=Object.entries(REG_MAP).map(([k,v])=>{
+    const codes=v.split(' ');
+    const ri=RI[k];
+    const y=S.reduce((a,_,s)=>a+Y0[s][ri],0);
+    return {k,n:codes.length,y};
+  });
+  const totY=regRows.reduce((a,x)=>a+x.y,0)||1;
+  const FAC_MAP={Land:['Land'],UnskLab:['clerks','service_shop','ag_othlowsk'],
+    SklLab:['tech_aspros','off_mgr_pros'],Capital:['Capital'],NatRes:['NatlRes']};
+  main.innerHTML=`<div class="pageTitle">Pemetaan Agregasi</div>
+  <div class="pageSub">65 sektor × 163 region × 8 faktor GTAP → ${nS} sektor × ${nR} region × ${nF} faktor. Nilai ditampilkan untuk basis <b>${curYear}</b>.</div>
+  <div style="height:16px"></div>
+  <div class="panel"><h2>Metode agregasi</h2>
+    <div class="small" style="line-height:1.8">
+    Agregasi dilakukan <b>sebelum kalibrasi</b>, dengan penjumlahan langsung (sum) atas nilaiUSD:
+    <b>(1)</b> VDFB/VMFB (65→11 sektor): jumlah sel masuk ke sel (sektor_asal, sektor_user). <b>(2)</b> VXSB/VMSB (163→16 region): jumlah atas (komoditas→sektor, sumber→region, tujuan→region). <b>(3)</b> EVFB (8→5 faktor): pembayaran digabung sesuai pemetaan faktor, mis. clerks + service_shop + ag_othlowsk → UnskLab. <b>(4)</b> VDPP/VDGB/VDIB/VST/POP: jumlah per region. Setelah diagregasi, share/sh coefficient (shDom, thetaMn, aic, thetaF, …) dikalibrasi dari matriks agregat — inilah yang dipakai solver.
+    </div></div>
+  <div class="grid2">
+   <div class="panel"><h2>Sektor (set COMM, 65 → ${nS})</h2>
+    <div class="tblwrap" style="max-height:400px"><table><thead><tr><th class="hd">Sektor app</th><th>n</th><th>% dari total flow</th><th>Komoditas GTAP</th></tr></thead><tbody>
+    ${secRows.map(x=>`<tr><td class="hd"><b>${x.k}</b></td><td class="num">${x.n}</td><td class="num">${(x.val/totVal*100).toFixed(1)}%</td><td style="text-align:left;font-family:var(--mono);font-size:11px;white-space:normal">${SEC_MAP[x.k]}</td></tr>`).join('')}
+    </tbody></table></div></div>
+   <div class="panel"><h2>Region (set REG, 163 → ${nR})</h2>
+    <div class="tblwrap" style="max-height:400px"><table><thead><tr><th class="hd">Region app</th><th>n</th><th>Output basis (juta USD)</th><th>%</th><th>Kode GTAP</th></tr></thead><tbody>
+    ${regRows.map(x=>`<tr><td class="hd"><b>${x.k}</b></td><td class="num">${x.n}</td><td class="num">${fmt(x.y)}</td><td class="num">${(x.y/totY*100).toFixed(1)}%</td><td style="text-align:left;font-family:var(--mono);font-size:11px;white-space:normal">${REG_MAP[x.k]}</td></tr>`).join('')}
+    <tr><td class="hd"><b>RestofWorld</b></td><td class="num">${163-Object.values(REG_MAP).reduce((a,v)=>a+v.split(' ').length,0)}</td><td class="num">—</td><td class="num">—</td><td style="text-align:left;font-family:var(--mono);font-size:11px">sisa region GTAP (grc, xef, xsu, syr, xsc, xtw)</td></tr>
+    </tbody></table></div></div>
+  </div>
+  <div class="panel"><h2>Faktor (set ENDW, 8 → ${nF})</h2>
+    <div class="tblwrap"><table><thead><tr><th class="hd">Faktor app</th><th>n</th><th>Pembayaran faktor basis (juta USD)</th><th>Kategori GTAP</th></tr></thead><tbody>
+    ${Object.entries(FAC_MAP).map(([k,lst])=>{
+      const fi=FI[k];const val=S.reduce((a,_,s)=>a+EVFB[fi][s].reduce((b,v)=>b+v,0),0);
+      return `<tr><td class="hd"><b>${k}</b></td><td class="num">${lst.length}</td><td class="num">${fmt(val)}</td><td style="text-align:left;font-family:var(--mono);font-size:11px">${lst.join(' + ')}</td></tr>`;}).join('')}
+    </tbody></table></div>
+    <div class="tiny muted" style="margin-top:8px">ENDW GTAP 12a: Land, tech_aspros, clerks, service_shop, off_mgr_pros, ag_othlowsk, Capital, NatlRes. UnskLab menggabungkan 3 kategori buruh terampil-rendah; SklLab menggabungkan profesional/manajer.</div></div>`;
+}
+
+// ============ Shocks ============
+function vShock(){
+  const opt=(arr,sel)=>arr.map(x=>`<option ${x===sel?'selected':''}>${x}</option>`).join('');
+  main.innerHTML=`<div class="pageTitle">Closure & Shocks</div>
+  <div class="pageSub">Closure: full employment · permintaan akhir Cobb-Douglas · Armington domestic/import · numeraire Land Indonesia.</div>
+  <div style="height:16px"></div>
+  <div class="grid2">
+  <div>
+    <div class="panel"><h2>Endowment faktor</h2><div id="endowRows"></div>
+      <button class="ghost addRow" id="addEndow">${ICON.plus} Tambah shock endowment</button></div>
+    <div class="panel"><h2>Produktivitas sektor</h2><div id="prodRows"></div>
+      <button class="ghost addRow" id="addProd">${ICON.plus} Tambah shock produktivitas</button></div>
+    <div class="panel"><h2>Elastisitas</h2><div class="elGrid">
+      <div class="el"><span class="small muted">Armington dom/imp</span><input type="number" step="any" data-k="arm" value="${els.arm??SIG0.arm}"></div>
+      <div class="el"><span class="small muted">Permintaan ekspor</span><input type="number" step="any" data-k="exp" value="${els.exp??SIG0.exp}"></div>
+      <div class="el"><span class="small muted">Sumber impor</span><input type="number" step="any" data-k="src" value="${els.src??SIG0.src}"></div>
+      <div class="el"><span class="small muted">Substitusi VA</span><input type="number" step="any" data-k="va" value="${els.va??SIG0.va}"></div>
+    </div><div style="margin-top:10px"><button class="ghost" id="resetEl">Reset ke default</button></div></div>
+  </div>
+  <div>
+    <div class="panel"><h2>Tarif impor</h2><div id="tariffRows"></div>
+      <button class="ghost addRow" id="addTariff">${ICON.plus} Tambah tarif</button>
+      <div class="tiny muted" style="margin-top:8px">Gunakan <b>ALL</b> untuk menerapkan ke semua sektor/sumber sekaligus.</div></div>
+    <div class="panel"><h2>Skenario</h2>
+      <div class="scenRow"><input type="text" id="scenName" placeholder="Nama skenario" style="flex:1;min-width:140px">
+      <button class="ghost" id="saveScen">${ICON.save} Simpan</button></div>
+      <div id="scenList"></div></div>
+    <div class="panel"><h2>Jalankan</h2>
+      <div class="small muted" style="margin-bottom:12px">${shockCount()} shock aktif saat ini.</div>
+      <button class="act" id="btnSolve">${ICON.run} Jalankan Model</button>
+      <button class="ghost" id="btnReset" style="margin-left:8px">Reset semua</button></div>
+  </div></div>`;
+
+  const rows=(elId,arr,render)=>{
+    const el=document.getElementById(elId);el.innerHTML='';
+    arr.forEach((item,idx)=>{
+      const div=document.createElement('div');div.className='shockRow';
+      div.innerHTML=render(item)+`<button class="icon" title="hapus">${ICON.trash}</button>`;
+      div.querySelector('button.icon').onclick=()=>{arr.splice(idx,1);vShock();renderStepper();};
+      el.appendChild(div);
+    });
+    if(!arr.length)el.innerHTML='<div class="tiny muted" style="padding:4px 0 8px">Belum ada shock.</div>';
+  };
+  rows('endowRows',endowList,it=>`
+    <select data-i="${endowList.indexOf(it)}" data-k="f">${opt(F,it.f)}</select>
+    <select data-i="${endowList.indexOf(it)}" data-k="r">${opt(R,it.r)}</select>
+    <input type="number" step="any" class="val" data-i="${endowList.indexOf(it)}" data-k="v" value="${(it.v*100).toFixed(2)}"> %`);
+  rows('prodRows',prodList,it=>`
+    <select data-i="${prodList.indexOf(it)}" data-k="s">${opt(S,it.s)}</select>
+    <select data-i="${prodList.indexOf(it)}" data-k="r">${opt(R,it.r)}</select>
+    <input type="number" step="any" class="val" data-i="${prodList.indexOf(it)}" data-k="v" value="${(it.v*100).toFixed(2)}"> %`);
+  rows('tariffRows',tariffList,it=>`
+    <select data-i="${tariffList.indexOf(it)}" data-k="s">${['ALL',...S].map(x=>`<option ${x===it.s?'selected':''}>${x}</option>`).join('')}</select>
+    <select data-i="${tariffList.indexOf(it)}" data-k="d">${opt(R,it.d)}</select>
+    <select data-i="${tariffList.indexOf(it)}" data-k="src">${['ALL',...R].map(x=>`<option ${x===it.src?'selected':''}>${x}</option>`).join('')}</select>
+    <input type="number" step="any" class="val" data-i="${tariffList.indexOf(it)}" data-k="v" value="${(it.v*100).toFixed(2)}"> %`);
+  const bind=(elId,arr)=>{ // select/number onchange; state menyimpan fraksi (v), input menampilkan %
+    document.querySelectorAll(`#${elId} select, #${elId} input`).forEach(inp=>{
+      inp.onchange=()=>{
+        const i=+inp.dataset.i,k=inp.dataset.k;
+        arr[i][k]=inp.tagName==='SELECT'?inp.value:(parseFloat(inp.value)||0)/100;
+        updateSolveCount();
+      };
+    });
+  };
+  bind('endowRows',endowList);bind('prodRows',prodList);bind('tariffRows',tariffList);
+  const updateSolveCount=()=>{const p=document.querySelector('#btnSolve')?.closest('.panel')?.querySelector('.small.muted');
+    if(p)p.textContent=`${shockCount()} shock aktif saat ini.`;};
+  document.getElementById('addEndow').onclick=()=>{endowList.push({f:F[1],r:'Indonesia',v:0});vShock();renderStepper();};
+  document.getElementById('addProd').onclick=()=>{prodList.push({s:S[0],r:'Indonesia',v:0});vShock();renderStepper();};
+  document.getElementById('addTariff').onclick=()=>{tariffList.push({s:'ALL',d:'Indonesia',src:'ALL',v:0});vShock();renderStepper();};
+  main.querySelectorAll('.elGrid input').forEach(inp=>inp.onchange=()=>{els[inp.dataset.k]=parseFloat(inp.value)||0;});
+  document.getElementById('resetEl').onclick=()=>{els={};vShock();};
+  document.getElementById('btnSolve').onclick=()=>runSolve();
+  document.getElementById('btnReset').onclick=()=>{endowList=[];prodList=[];tariffList=[];els={};toast('Semua shock direset');vShock();renderStepper();};
+  // scenarios
+  const list=()=>{try{return JSON.parse(localStorage.getItem('rungtap_scen')||'{}');}catch(e){return {};}};
+  const renderScen=()=>{
+    const L=list(),el=document.getElementById('scenList');
+    el.innerHTML=Object.keys(L).length?Object.keys(L).map(n=>
+      `<span class="chip">${n}<button data-n="${n}" data-a="load" title="muat">muat</button><button data-n="${n}" data-a="del" title="hapus">✕</button></span>`).join('')
+      :'<span class="tiny muted">Belum ada skenario tersimpan.</span>';
+    el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      const L2=list();
+      if(b.dataset.a==='del'){delete L2[b.dataset.n];localStorage.setItem('rungtap_scen',JSON.stringify(L2));renderScen();toast('Skenario dihapus');}
+      else{const sc=L2[b.dataset.n];endowList=sc.endow;prodList=sc.prod;tariffList=sc.tariff;els=sc.els||{};toast(`Skenario "${b.dataset.n}" dimuat`);vShock();}
+    });
+  };
+  document.getElementById('saveScen').onclick=()=>{
+    const n=document.getElementById('scenName').value.trim()||('Skenario '+new Date().toLocaleString('id-ID'));
+    const L=list();L[n]={endow:endowList,prod:prodList,tariff:tariffList,els};
+    try{localStorage.setItem('rungtap_scen',JSON.stringify(L));toast(`Skenario "${n}" tersimpan`);renderScen();}
+    catch(e){toast('Gagal menyimpan (storage penuh?)');}
+  };
+  renderScen();
+}
+
+// ============ Run ============
+function runSolve(){setView('run');}
+function vRun(){
+  main.innerHTML=`<div class="pageTitle">Solve</div>
+  <div class="pageSub">Mini-CGE Armington · full employment · penyelesaian Leontief eksak per region.</div>
+  <div style="height:16px"></div>
+  <div class="panel"><h2>Progress</h2>
+    <div id="runStatus"><span class="spinner"></span>Menyelesaikan model…</div>
+    <div style="height:12px"></div><div id="log">memulai…</div></div>
+  <div class="panel"><h2>Sensitivitas elastisitas</h2>
+    <div class="small muted" style="margin-bottom:10px">Jalankan ulang model dengan elastisitas ±50% (4 varian: Armington & esubx) untuk melihat rentang ketidakpastian hasil.</div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="sensChk" style="width:auto"> Auto setelah solve
+      </label>
+      <button class="ghost" id="btnSens">Jalankan sensitivitas</button>
+    </div>
+    <div id="sensOut" style="margin-top:10px"></div></div>`;
+  const logEl=document.getElementById('log');
+  const sensChk=document.getElementById('sensChk');
+  sensChk.checked=!!window.sensOn;
+  sensChk.onchange=e=>{window.sensOn=e.target.checked;};
+  document.getElementById('btnSens').onclick=runSensitivity;
+  if(window.lastSens)renderSens(window.lastSens);
+  setTimeout(()=>{
+    try{
+      const res=solveModel(buildShocks());
+      res.year=curYear;
+      logEl.textContent=res.log.join('\n');
+      window.lastRes=res;
+      document.getElementById('runStatus').innerHTML=`<span class="pos" style="font-weight:600">✓ Selesai</span> <span class="muted small">— ${res.log.length?res.log[res.log.length-1]:''}</span>`;
+      document.querySelector('.panel').appendChild(Object.assign(document.createElement('button'),
+        {className:'act',textContent:'Lihat hasil →',style:'margin-top:12px',onclick:()=>setView('res')}));
+      toast('Simulasi selesai');
+      renderStepper();
+      if(window.sensOn)runSensitivity();
+    }catch(e){
+      logEl.textContent='ERROR: '+(e.stack||e.message);
+      document.getElementById('runStatus').innerHTML='<span class="neg" style="font-weight:600">✗ Gagal</span>';
+    }
+  },30);
+}
+function renderSens(rows){
+  const out=document.getElementById('sensOut');if(!out)return;
+  const i=RI['Indonesia'];
+  out.innerHTML=`<div class="tblwrap"><table><thead><tr><th class="hd">Varian</th><th>GDP IDN</th><th>Upah SklLab</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td class="hd">${r.lab}</td><td class="num">${pct(r.gdp)}</td><td class="num">${pct(r.sk)}</td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="tiny muted" style="margin-top:6px">Basis: ${pct(S.reduce((a,_,s)=>a+window.lastRes.Y[s][i],0)/S.reduce((a,_,s)=>a+Y0[s][i],0)-1)} GDP pada elastisitas default.</div>`;
+}
+function runSensitivity(){
+  const out=document.getElementById('sensOut');
+  out.innerHTML='<span class="spinner"></span><span class="small muted">Menjalankan 4 varian elastisitas…</span>';
+  setTimeout(()=>{
+    try{
+      const base=buildShocks();
+      const mk=(k,f)=>{const s=JSON.parse(JSON.stringify(base));
+        s.els={...base.els,[k]:(base.els?.[k]??SIG0[k])*f};return s;};
+      const variants=[
+        {lab:'elow (−50%)',sh:mk('arm',0.5)},{lab:'ehigh (+50%)',sh:mk('arm',1.5)},
+        {lab:'esubx low (−50%)',sh:mk('exp',0.5)},{lab:'esubx high (+50%)',sh:mk('exp',1.5)}];
+      const i=RI['Indonesia'];
+      const rows=variants.map(v=>{
+        const r=solveModel(v.sh);
+        const gdp=S.reduce((a,_,s)=>a+r.Y[s][i],0)/S.reduce((a,_,s)=>a+Y0[s][i],0)-1;
+        const sk=r.wf[FI['SklLab']][i]-1;
+        return {lab:v.lab,gdp,sk};});
+      window.lastSens=rows;
+      renderSens(rows);
+      toast('Sensitivitas selesai');
+    }catch(e){out.innerHTML=`<span class="neg small">ERROR: ${e.message}</span>`;}
+  },30);
+}
+
+// ============ Hasil ============
+function vRes(){
+  if(!window.lastRes){main.innerHTML=`<div class="pageTitle">Hasil</div><div style="height:16px"></div>
+    <div class="panel"><div class="muted">Belum ada hasil — jalankan model dulu di tab <b>Shocks</b> atau <b>Solve</b>.</div></div>`;return;}
+  const {wf,ps,Y,inc,cpi,tarifRev,EV}=window.lastRes;
+  const i=RI['Indonesia'];
+  const gdp=S.reduce((a,_,s)=>a+Y[s][i],0)/S.reduce((a,_,s)=>a+Y0[s][i],0)-1;
+  const realIncR=R.map((r,ri)=>{
+    const inc0=finTotR[ri],cpi0=1;
+    return (inc[ri]/cpi[ri])/(inc0/cpi0)-1;});
+  const secBar=S.map((s,si)=>({label:s,value:Y[si][i]/Y0[si][i]-1}));
+  const dE=EMIS_PROD?(EMIS_PROD.reduce((a,_,s)=>a+EMIS_PROD[s][i]*Y[s][i]/Y0[s][i],0)/Math.max(EMIS_PROD.reduce((a,_,s)=>a+EMIS_PROD[s][i],0),1e-9)-1):0;
+  const eSecBar=EMIS_PROD?S.map((s,si)=>({label:s,value:EMIS_PROD[si][i]>1e-9?Y[si][i]/Y0[si][i]-1:0})):null;
+  const regBar=R.map((r,ri)=>({label:r,value:S.reduce((a,_,s)=>a+Y[s][ri],0)/S.reduce((a,_,s)=>a+Y0[s][ri],0)-1}));
+  const expChg=S.map((s,si)=>{
+    const num=S.reduce((a,_,src)=>{
+      const pm=ps[si][src];return a+0;},0); // placeholder replaced below
+    return {label:s,value:null};});
+  // export demand at solution: expTarget*(ps/pwX)^-SIG_X
+  const EL=window.lastRes.el;
+  const pwX=Array.from({length:nS},(_,s)=>{let n=0,d2=0;for(let src=0;src<nR;src++){n+=Xrow0[s][src]*ps[s][src];d2+=Xrow0[s][src];}return n/Math.max(d2,1e-12);});
+  const expBars=S.map((s,si)=>{
+    const t0s=S.reduce((a,_,src)=>a+expTarget[si][src],0);
+    if(t0s<1e-6)return {label:s,value:0,skip:true};
+    let eD=0;for(let src=0;src<nR;src++)eD+=expTarget[si][src]*Math.pow(Math.max(ps[si][src],1e-12)/Math.max(pwX[si],1e-12),-EL.exp);
+    return {label:s,value:eD/t0s-1};});
+  const csv=()=>{
+    let c='tipe,nama,perubahan_pct\n';
+    S.forEach((s,si)=>c+=`output_${'Indonesia'},${s},${((Y[si][i]/Y0[si][i]-1)*100).toFixed(4)}\n`);
+    F.forEach(f=>c+=`upah_Indonesia,${f},${((wf[FI[f]][i]-1)*100).toFixed(4)}\n`);
+    R.forEach((r,ri)=>{const ch=S.reduce((a,_,s)=>a+Y[s][ri],0)/S.reduce((a,_,s)=>a+Y0[s][ri],0)-1;
+      c+=`output_region,${r},${(ch*100).toFixed(4)}\n`;});
+    R.forEach((r,ri)=>c+=`real_income_region,${r},${((realIncR[ri])*100).toFixed(4)}\n`);
+    R.forEach((r,ri)=>c+=`ev_region,${r},${(EV[ri]).toFixed(2)}\n`);
+    if(EMIS_PROD){S.forEach((s,si)=>c+=`emisi_prod_pct_Indonesia,${s},${((EMIS_PROD[si][i]*Y[si][i]/Y0[si][i]/Math.max(EMIS_PROD.reduce((a,_,u)=>a+EMIS_PROD[u][i],0),1e-9))*100).toFixed(4)}\n`);}
+    const blob=new Blob([c],{type:'text/csv'});const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='hasil_simulasi.csv';a.click();toast('CSV diunduh');
+  };
+  main.innerHTML=`<div class="pageTitle">Hasil Simulasi</div>
+  <div class="pageSub">${shockCount()} shock · elastisitas Armington ${EL.arm}, ekspor ${EL.exp}, sumber ${EL.src}, VA ${EL.va}</div>
+  <div style="height:16px"></div>
+  <div class="panel"><h2>Indikator utama — Indonesia</h2><div class="kpis">
+    <div class="kpi"><div class="lab">Real GDP (proxy)</div><div class="val ${gdp>=0?'pos':'neg'}">${pct(gdp)}</div></div>
+    <div class="kpi"><div class="lab">EV kesejahteraan</div><div class="val ${EV[i]>=0?'pos':'neg'}">${fmt(EV[i])}<div class="tiny muted">juta USD</div></div></div>
+    <div class="kpi"><div class="lab">Real income</div><div class="val ${realIncR[i]>=0?'pos':'neg'}">${pct(realIncR[i])}</div></div>
+    ${F.map(f=>`<div class="kpi"><div class="lab">Upah ${f}</div><div class="val ${(wf[FI[f]][i]-1)>=0?'pos':'neg'}">${pct(wf[FI[f]][i]-1)}</div></div>`).join('')}
+    <div class="kpi"><div class="lab">Penerimaan tarif</div><div class="val">${fmt(tarifRev[i])}</div></div>
+  </div></div>
+  <div class="panel"><h2>Output sektoral — Indonesia</h2><div class="chartwrap">${hbar(secBar)}</div></div>
+  ${EMIS_PROD?`
+  <div class="panel"><h2>Emisi CO2 — Indonesia (koefisien × output)</h2>
+    <div class="kpis" style="margin-bottom:12px">
+      <div class="kpi"><div class="lab">Emisi produksi basis</div><div class="val">${fmt(EMIS_PROD.reduce((a,_,s)=>a+EMIS_PROD[s][i],0))}<div class="tiny muted">Mt CO2</div></div></div>
+      <div class="kpi"><div class="lab">Emisi produksi baru</div><div class="val">${fmt(EMIS_PROD.reduce((a,_,s)=>a+EMIS_PROD[s][i]*Y[s][i]/Y0[s][i],0))}<div class="tiny muted">Mt CO2</div></div></div>
+      <div class="kpi"><div class="lab">Perubahan emisi</div><div class="val ${dE>=0?'neg':'pos'}">${pct(dE)}<div class="tiny muted">naik = merah</div></div></div>
+    </div>
+    <div class="chartwrap">${hbar(eSecBar)}</div>
+    <div class="tiny muted" style="margin-top:8px">Asumsi: koefisien emisi per unit output tetap (no abatement). Emisi = EMIS0_sektor × dY. Sumber: GTAP 12a co2.har (2023), bahan bakar pembakaran.</div>
+  </div>`:''}
+  <div class="panel"><h2>Permintaan ekspor (perubahan vs target basis)</h2><div class="chartwrap">${hbar(expBars.filter(b=>!b.skip))}</div></div>
+  <div class="panel"><h2>Semua region</h2>
+    <div class="chartwrap" style="margin-bottom:14px">${hbar(regBar)}</div>
+    <div class="tblwrap"><table><thead><tr><th class="hd">Region</th><th>dY agregat</th><th>Indeks harga (rata2)</th><th>EV (juta USD)</th><th>Real income</th><th>Upah UnskLab</th><th>Upah Capital</th><th>Penerimaan tarif</th></tr></thead><tbody>
+    ${R.map((r,ri)=>{
+      const pw=S.reduce((a,_,s)=>a+ps[s][ri],0)/nS;
+      return `<tr><td class="hd">${r}</td><td class="num">${pct(regBar[ri].value)}</td><td class="num">${fmt3(pw)}</td>
+        <td class="num ${EV[ri]>=0?'pos':'neg'}">${fmt(EV[ri])}</td><td class="num">${pct(realIncR[ri])}</td><td class="num">${pct(wf[FI['UnskLab']][ri]-1)}</td><td class="num">${pct(wf[FI['Capital']][ri]-1)}</td>
+        <td class="num">${fmt(tarifRev[ri])}</td></tr>`;}).join('')}
+    </tbody></table></div></div>
+  <div class="panel"><h2>Detail sektor × region (dY %)</h2>
+    <div class="tblwrap" style="max-height:420px"><table><thead><tr><th class="hd">Sektor</th>${R.map(r=>`<th>${r}</th>`).join('')}</tr></thead><tbody>
+    ${S.map((s,si)=>`<tr><td class="hd">${s}</td>${R.map((r,ri)=>`<td class="num">${pctc(Y[si][ri]/Y0[si][ri]-1)}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div></div>
+  <div><button class="act" id="csvBtn">${ICON.dl} Unduh hasil (CSV)</button></div>`;
+  document.getElementById('csvBtn').onclick=csv;
+}
+
+// ============ Banding (multi-skenario) ============
+function vCmp(){
+  const runs=(()=>{try{return JSON.parse(sessionStorage.getItem('rungtap_runs')||'[]');}catch(e){return [];}})();
+  const save=()=>{try{sessionStorage.setItem('rungtap_runs',JSON.stringify(runs));}catch(e){}};
+  const i=RI['Indonesia'];
+  const summarize=(res,lab)=>{
+    const gdp=S.reduce((a,_,s)=>a+res.Y[s][i],0)/S.reduce((a,_,s)=>a+Y0[s][i],0)-1;
+    return {lab,gdp,
+      ev:res.EV?res.EV[i]:null,
+      realInc:(res.inc[i]/res.cpi[i])/(finTotR[i])-1,
+      sk:res.wf[FI['SklLab']][i]-1, unsk:res.wf[FI['UnskLab']][i]-1, kap:res.wf[FI['Capital']][i]-1,
+      tar:res.tarifRev[i],
+      sec:S.map((s,si)=>res.Y[si][i]/Y0[si][i]-1)};
+  };
+  main.innerHTML=`<div class="pageTitle">Banding Skenario</div>
+  <div class="pageSub">Jalankan beberapa konfigurasi shock dan bandingkan hasilnya. Hasil saat ini otomatis tersimpan sebagai run.</div>
+  <div style="height:16px"></div>
+  <div class="panel"><h2>Simpan hasil saat ini</h2>
+    <div class="scenRow">
+      <input type="text" id="runName" placeholder="Nama run (mis. Tarif 10%)" style="flex:1;min-width:150px">
+      <button class="ghost" id="addRun">${ICON.plus} Simpan run aktif</button>
+      <button class="act" id="cmpSolve">${ICON.run} Solve &amp; simpan</button>
+    </div>
+    <div class="tiny muted" style="margin-top:8px">"Solve &amp; simpan" menjalankan model dengan shock di tab Shocks lalu menyimpannya dengan nama di atas.</div>
+    <div id="runList" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"></div>
+  </div>
+  <div id="cmpBody"></div>`;
+  const renderList=()=>{
+    const el=document.getElementById('runList');
+    el.innerHTML=runs.length?runs.map((r,idx)=>
+      `<span class="chip">${r.lab}<button data-i="${idx}" data-a="del">✕</button></span>`).join('')
+      :'<span class="tiny muted">Belum ada run tersimpan.</span>';
+    el.querySelectorAll('button').forEach(b=>b.onclick=()=>{runs.splice(+b.dataset.i,1);save();renderAll();renderStepper();});
+  };
+  const renderTable=()=>{
+    const body=document.getElementById('cmpBody');
+    if(runs.length<1){body.innerHTML='<div class="panel"><div class="muted">Simpan minimal satu run untuk membandingkan.</div></div>';return;}
+    const sums=runs.map(r=>r.sum);
+    body.innerHTML=`<div class="panel"><h2>Indikator utama — Indonesia</h2>
+      <div class="tblwrap"><table><thead><tr><th class="hd">Indikator</th>${sums.map(s=>`<th>${s.lab}</th>`).join('')}</tr></thead><tbody>
+      <tr><td class="hd">Real GDP</td>${sums.map(s=>`<td class="num">${pctc(s.gdp)}</td>`).join('')}</tr>
+      <tr><td class="hd">EV kesejahteraan (juta USD)</td>${sums.map(s=>`<td class="num">${s.ev==null?'—':fmt(s.ev)}</td>`).join('')}</tr>
+      <tr><td class="hd">Real income</td>${sums.map(s=>`<td class="num">${pctc(s.realInc)}</td>`).join('')}</tr>
+      <tr><td class="hd">Upah SklLab</td>${sums.map(s=>`<td class="num">${pctc(s.sk)}</td>`).join('')}</tr>
+      <tr><td class="hd">Upah UnskLab</td>${sums.map(s=>`<td class="num">${pctc(s.unsk)}</td>`).join('')}</tr>
+      <tr><td class="hd">Upah Capital</td>${sums.map(s=>`<td class="num">${pctc(s.kap)}</td>`).join('')}</tr>
+      <tr><td class="hd">Penerimaan tarif</td>${sums.map(s=>`<td class="num">${fmt(s.tar)}</td>`).join('')}</tr>
+      </tbody></table></div></div>
+    <div class="panel"><h2>GDP per skenario</h2><div class="chartwrap">${hbar(sums.map(s=>({label:s.lab,value:s.gdp})))}</div></div>
+    <div class="panel"><h2>EV kesejahteraan per skenario (juta USD)</h2><div class="chartwrap">${hbar(sums.filter(s=>s.ev!=null).map(s=>({label:s.lab,value:s.ev})),{valFmt:v=>fmt(v)})}</div></div>
+    <div class="panel"><h2>Output sektoral per skenario (dY %)</h2>
+      <div class="tblwrap" style="max-height:420px"><table><thead><tr><th class="hd">Sektor</th>${sums.map(s=>`<th>${s.lab}</th>`).join('')}</tr></thead><tbody>
+      ${S.map((s,si)=>`<tr><td class="hd">${s}</td>${sums.map(sm=>`<td class="num">${pctc(sm.sec[si])}</td>`).join('')}</tr>`).join('')}
+      </tbody></table></div></div>`;
+  };
+  const renderAll=()=>{renderList();renderTable();};
+  document.getElementById('addRun').onclick=()=>{
+    if(!window.lastRes){toast('Belum ada hasil — jalankan model dulu');return;}
+    const lab=document.getElementById('runName').value.trim()||('Run '+(runs.length+1));
+    runs.push({lab,sum:summarize(window.lastRes,lab),year:curYear});save();renderAll();renderStepper();toast(`Run "${lab}" disimpan`);
+  };
+  document.getElementById('cmpSolve').onclick=()=>{
+    const lab=document.getElementById('runName').value.trim()||('Run '+(runs.length+1));
+    const btn=document.getElementById('cmpSolve');btn.disabled=true;
+    setTimeout(()=>{
+      try{
+        const res=solveModel(buildShocks());
+        res.year=curYear;
+        window.lastRes=res;
+        runs.push({lab,sum:summarize(res,lab),year:curYear});save();renderAll();renderStepper();
+        toast(`Run "${lab}" selesai & disimpan`);
+      }catch(e){toast('ERROR: '+e.message);}
+      btn.disabled=false;
+    },30);
+  };
+  renderAll();
+}
+
+// ============ Export GAMS ============
+function vGams(){
+  main.innerHTML=`<div class="pageTitle">Export GAMS</div>
+  <div class="pageSub">File .gms dengan set, parameter data GTAP 12a, kalibrasi, shocks aktif, dan skeleton persamaan — konvensi penamaan MANAGE-WB (pf, ps, psigma, esub).</div>
+  <div style="height:16px"></div>
+  <div class="panel">
+    <button class="act" id="btnGams">${ICON.dl} Generate &amp; download .gms</button>
+    <span class="muted small" style="margin-left:10px">${shockCount()} shock akan ikut diekspor</span>
+    <div style="height:12px"></div>
+    <div class="tblwrap" style="max-height:440px"><pre class="map" id="gamsOut" style="padding:12px">Klik tombol di atas untuk generate.</pre></div>
+  </div>`;
+  document.getElementById('btnGams').onclick=()=>{
+    const gams=genGams();
+    document.getElementById('gamsOut').textContent=gams;
+    const blob=new Blob([gams],{type:'text/plain'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='manage_wb_mini.gms';a.click();
+    toast('File GAMS diunduh');
+  };
+}
+function g3(arr,f){
+  let out='';
+  for(let i=0;i<arr.length;i++){const L=arr[i];if(!L)continue;
+    for(let j=0;j<L.length;j++){const M=L[j];if(!M)continue;
+      for(let k=0;k<M.length;k++){const v=M[k];
+        if(v&&Math.abs(v)>1e-6)out+=f(i,j,k,v)+'\n';}}}
+  return out;
+}
+function genGams(){
+  const sh=buildShocks();
+  let g=`* manage_wb_mini.gms -- mini CGE dari RunMiniGTAP
+* Data: GTAP 12a 2023 (juta USD). Konvensi penamaan mengikuti MANAGE-WB:
+*   pf(f,t) harga faktor, ps(i,t) harga supply, theta(i,t) share VA,
+*   psigma elastisitas CES VA, esub(i) Armington.
+SETS
+  t "region"  / ${R.join(',')} /
+  i "sektor"  / ${S.join(',')} /
+  f "faktor"  / ${F.join(',')} / ;
+ALIAS (t,tt),(i,ii);
+PARAMETERS
+  pf0(f,i,t)   "pembayaran faktor basis (EVFB)"
+  vdfb(i,ii,t) "intermedier domestik"
+  vmfb(i,ii,t) "intermedier impor"
+  vdpp(i,t) vdgb(i,t) vdib(i,t)
+  vxsb(i,t,tt) "ekspor (src,dst)"
+  vmsb(i,t,tt) "impor (dst,src)"
+  y0(i,t)      "output bruto basis"
+  aic(i,ii,t)  "koefisien Leontief"
+  shva(i,t)    "share VA"
+  shdom(i,t)   "share varietas domestik"
+  exptar(i,t)  "target ekspor basis" ;
+`;
+  g+='pf0(f,i,t)';g+=g3(EVFB,(f,s,r,v)=>`  / f.${F[f]}.i.${S[s]}.t.${R[r]} ${v} /`);
+  g+='\nvdpp(i,t)';g+=g3([D.VDPP],(a,s,r,v)=>`  / i.${S[s]}.t.${R[r]} ${v} /`);
+  g+='\nvdgb(i,t)';g+=g3([D.VDGB],(a,s,r,v)=>`  / i.${S[s]}.t.${R[r]} ${v} /`);
+  g+='\nvdib(i,t)';g+=g3([D.VDIB],(a,s,r,v)=>`  / i.${S[s]}.t.${R[r]} ${v} /`);
+  g+='\ny0(i,t)';g+=g3([Y0],(a,s,r,v)=>`  / i.${S[s]}.t.${R[r]} ${v} /`);
+  g+='\naic(i,ii,t)';g+=g3(aic,(i,u,r,v)=>`  / i.${S[i]}.ii.${S[u]}.t.${R[r]} ${v.toFixed(5)} /`);
+  g+='\nshva(i,t)';g+=g3([shVA],(a,s,r,v)=>`  / i.${S[s]}.t.${R[r]} ${v.toFixed(5)} /`);
+  g+='\nshdom(i,t)';g+=g3([shDom],(a,s,r,v)=>`  / i.${S[s]}.t.${R[r]} ${v.toFixed(5)} /`);
+  g+='\nexptar(i,t)';g+=g3([expTarget],(a,s,r,v)=>`  / i.${S[s]}.t.${R[r]} ${v} /`);
+  g+=`
+
+* ---- shocks aktif (dari UI RunMiniGTAP) ----
+PARAMETER shock_endow(f,t), shock_prod(i,t), shock_tariff(i,t,tt);
+`;
+  for(const[f,rr]of Object.entries(sh.endow))for(const[r,v]of Object.entries(rr))
+    g+=`shock_endow('${f}','${r}') = ${v};\n`;
+  for(const[s,rr]of Object.entries(sh.prod))for(const[r,v]of Object.entries(rr))
+    g+=`shock_prod('${s}','${r}') = ${v};\n`;
+  for(const[s,dd]of Object.entries(sh.tariff))for(const[d,ss]of Object.entries(dd))for(const[src,v]of Object.entries(ss))
+    g+=`shock_tariff('${s}','${d}','${src}') = ${v};\n`;
+  g+=`
+* ---- elastisitas ----
+SCALARS psigma /${sh.els?.va??SIG0.va}/, esub /${sh.els?.arm??SIG0.arm}/,
+  esubx /${sh.els?.exp??SIG0.exp}/, esubm /${sh.els?.src??SIG0.src}/ ;
+
+* ---- skeleton persamaan (konvensi MANAGE-WB model.inc) ----
+* Pasar faktor:  SUM(i, pf(f,t)*pflag) =e= SUM(i, theta(f,i,t)*cva(i,t)*VAq(i,t));
+* Cost pricing:  ps(i,t)*aprod(i,t) =e= shva(i,t)*cva(i,t) + SUM(ii, aic(ii,i,t)*parm(ii,t));
+* Armington:     parm(i,t) = shdom(i,t)*ps(i,t)*(ps/parm)**-esub + ...
+* Untuk model penuh, sisipkan ke skeleton GAMS MANAGE-WB (model.inc).
+`;
+  return g;
+}
+
+setView('har');
+</script>
+<script>
+// expose minimal state utk debugging/testing (tidak dipakai app)
+window.DS=DS;window.curYear=()=>curYear;window.getY0=()=>Y0;window.getRI=()=>RI;window.getRIc=RI;
+window.getLastRes=()=>window.lastRes;
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+GTAP12a_GTAP_AY.pkg
+extracted/
+node_modules/
+__pycache__/
+*.pyc
+.claude/
+co2_err.txt
+co2_out.txt
