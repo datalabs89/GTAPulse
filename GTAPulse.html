@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RunMiniGTAP</title>
+<title>GTAPulse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -167,7 +167,7 @@ pre.map{font-family:var(--mono);font-size:12px;white-space:pre-wrap;color:var(--
 </head>
 <body>
 <aside>
-  <div class="brand"><h1>RunMiniGTAP</h1><small>GTAP 12a &middot; 2023 &middot; konvensi MANAGE-WB</small></div>
+  <div class="brand"><h1>GTAPulse</h1><small>GTAP 12a &middot; 2023 &middot; konvensi MANAGE-WB</small></div>
   <nav id="nav"></nav>
   <div class="sidefoot">
     <div id="footInfo"></div>
@@ -1016,7 +1016,7 @@ function g3(arr,f){
 }
 function genGams(){
   const sh=buildShocks();
-  let g=`* manage_wb_mini.gms -- mini CGE dari RunMiniGTAP
+  let g=`* manage_wb_mini.gms -- mini CGE dari GTAPulse
 * Data: GTAP 12a 2023 (juta USD). Konvensi penamaan mengikuti MANAGE-WB:
 *   pf(f,t) harga faktor, ps(i,t) harga supply, theta(i,t) share VA,
 *   psigma elastisitas CES VA, esub(i) Armington.
@@ -1049,7 +1049,7 @@ PARAMETERS
   g+='\nexptar(i,t)';g+=g3([expTarget],(a,s,r,v)=>`  / i.${S[s]}.t.${R[r]} ${v} /`);
   g+=`
 
-* ---- shocks aktif (dari UI RunMiniGTAP) ----
+* ---- shocks aktif (dari UI GTAPulse) ----
 PARAMETER shock_endow(f,t), shock_prod(i,t), shock_tariff(i,t,tt);
 `;
   for(const[f,rr]of Object.entries(sh.endow))for(const[r,v]of Object.entries(rr))

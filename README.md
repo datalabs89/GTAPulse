@@ -1,4 +1,4 @@
-# RunMiniGTAP — Mini CGE berbasis GTAP 12a dalam satu file HTML
+# GTAPulse — Mini CGE berbasis GTAP 12a dalam satu file HTML
 
 Aplikasi web single-file (mirip RunGTAP) untuk simulasi CGE (Computable General Equilibrium)
 berbasis data GTAP 12a agregat: 11 sektor x 16 region x 5 faktor.
@@ -19,7 +19,7 @@ berbasis data GTAP 12a agregat: 11 sektor x 16 region x 5 faktor.
 
 ## Cara pakai
 
-Buka `rungtap.html` langsung di browser (Chrome/Edge). Tidak perlu server.
+Buka `GTAPulse.html` langsung di browser (Chrome/Edge). Tidak perlu server.
 
 1. **Data** — pilih tahun basedata, telusuri header jika perlu
 2. **Closure & Shocks** — tambah shock (mis. tarif 10% sektor FerMet di Indonesia)
@@ -36,16 +36,16 @@ python build_app_dataset.py
 python build_co2_dataset.py
 
 # 3. Build HTML final
-python build_rungtap.py   # -> rungtap.html
+python build_gtapulse.py   # -> GTAPulse.html
 ```
 
 ## Struktur
 
 | File | Keterangan |
 |---|---|
-| `rungtap.html` | Aplikasi final (data ter-embed, ~730 KB) |
-| `rungtap_template.html` | Template (placeholder `/*__DATA__*/null`) |
-| `build_rungtap.py` | Suntik dataset JSON ke template |
+| `GTAPulse.html` | Aplikasi final (data ter-embed, ~730 KB) |
+| `GTAPulse_template.html` | Template (placeholder `/*__DATA__*/null`) |
+| `build_gtapulse.py` | Suntik dataset JSON ke template |
 | `build_app_dataset.py` | Agregasi basedata.har -> 11x16x5, 7 tahun |
 | `build_co2_dataset.py` | Agregasi co2.har -> emisi per region/sektor |
 | `app_dataset.json` | Dataset agregat multi-tahun |
